@@ -10,7 +10,9 @@
 	</body>
 	<script type="text/javascript" src="./lib/jiaban.js"></script>
 	<script type="text/javascript">
-		var r = jb.getText("2012-02-15","2012-03-16");
-		console.log(r);
+	        var start = new Date().getTime();
+		var r = jb.getText("2012-02-15","2012-03-16",["2012-02-13","2012-03-14","2012-02-17"]);
+		var end = new Date().getTime();
+		console.log(end-start,r);
 	</script>
 </html>
