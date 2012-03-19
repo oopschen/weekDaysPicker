@@ -3,16 +3,68 @@
 		<title>加班时间计算器</title>
 		<META http-equiv="content-type" content="text/html;charset=UTF-8" />
 		<META http-equiv="Cache-Control" content="max-age=0;" />
+		<link type="text/css" href="jquery-ui-1.8.18.custom/css/redmond/jquery-ui-1.8.18.custom.css" rel="stylesheet" />
 	</head>
 	<body>
-		<div id="bar"></div>
-		<div id="ret"></div>
+		<div>
+			<div style="margin:20 auto;">点击日期选择不要的日子，进行计算</div>
+			<div id="bar"></div>
+			<div> 
+				<div><input id="cal" type="button" value="计算" ></div>
+			</div>
+			<div id="retd" style="display:none;margin:20px auto;"><input type="text" value="" id="ret"/> </div>
+		</div>
 	</body>
-	<script type="text/javascript" src="./lib/jiaban.js"></script>
+	<script type="text/javascript" src="jquery-ui-1.8.18.custom/js/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="jquery-ui-1.8.18.custom/js/jquery-ui-1.8.18.custom.min.js"></script>
+	<script type="text/javascript" src="lib/jiaban.js"></script>
 	<script type="text/javascript">
-	        var start = new Date().getTime();
-		var r = jb.getText("2012-02-15","2012-03-16",["2012-02-13","2012-03-14","2012-02-17"]);
-		var end = new Date().getTime();
-		console.log(end-start,r);
+		var init = function() {
+			var now = new Date();
+			var excludes = {};
+			now.setDate(16);
+			var start = jb.addMonth(now,-1);
+			now.setDate(15);
+
+
+			// Datepicker
+			$('#bar').datepicker({
+				numberOfMonths: 2,
+				showButtonPanel: false,
+				dayNames:['日','一','二','三','四','五','六'],
+				dayNamesMin:['日','一','二','三','四','五','六'],
+				dayNamesShort:['日','一','二','三','四','五','六'],
+				monthNames:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+				monthNamesShort:['一','二','三','四','五','六','七','八','九','十','十一','十二'],
+				dateFormat:'yy-mm-dd',
+
+				maxDate:now,
+				minDate:start,
+				onSelect:function(date,ele){
+					excludes[date] = !excludes[date];
+				}
+			});
+
+			$('#cal').click(function(){
+				var ex = [];
+				for(var i in excludes) {
+					if(excludes[i]){
+						ex[ex.length]= i;
+					}
+				}
+				var end = new Date(now);
+				end.setDate(16);
+				var ret = jb.getText(start,end,ex);
+				excludes={};
+				if(!ret) {
+					$('#ret').html('没有结果');
+					return;
+				}
+				$('#ret').val(ret.r).attr('size',ret.r.length+10);
+				$('#retd').css('display','');
+			});
+			$('#cal').click();
+		};
+		$(document.body).ready(init);
 	</script>
 </html>
