@@ -4,15 +4,42 @@
 		<META http-equiv="content-type" content="text/html;charset=UTF-8" />
 		<META http-equiv="Cache-Control" content="max-age=0;" />
 		<link type="text/css" href="jquery-ui-1.8.18.custom/css/redmond/jquery-ui-1.8.18.custom.css" rel="stylesheet" />
+		<style type="text/css">
+			.f {
+				float:left;
+				margin:10px auto;
+				zoom:1;
+			}
+			.ex {
+				color:red;
+			}
+			.inc {
+				color:green;
+			}
+		</style>
 	</head>
 	<body>
 		<div>
-			<div style="margin:20 auto;">点击日期选择不要的日子，进行计算</div>
-			<div id="bar"></div>
-			<div> 
-				<div><input id="cal" type="button" value="计算" ></div>
+			<div style="margin:20 auto;">点击日期选择不要的日子，进行计算,<span class="inc">包含</span>的日期覆盖<span class="ex">不包含</span>日期</div>
+
+			<div id="modebar">
+				<input name="mode" type="radio" value="1" /> <span class="inc">包含</span>
+				<input name="mode" type="radio" checked=checked value="2" /><span class="ex">不包含</span>
 			</div>
-			<div id="retd" style="display:none;margin:20px auto;"><input type="text" value="" id="ret"/> </div>
+
+			<div style="overflow:hidden;">
+				<div id="bar" class="f"></div>
+
+				<div id="ex" class="f ex"></div>
+				<div id="inc" class="f inc"></div>
+			</div>
+
+			<div><input id="cal" type="button" value="计算" ></div>
+
+			<div id="retd" style="display:none;margin:20px auto;">
+				<div>详情:<input type="text" value="" id="ret"/></div>
+				<div>总天数:<input type="text" value="" id="tolDays"/></div> 
+			</div>
 		</div>
 	</body>
 	<script type="text/javascript" src="jquery-ui-1.8.18.custom/js/jquery-1.7.1.min.js"></script>
@@ -22,10 +49,27 @@
 		var init = function() {
 			var now = new Date();
 			var excludes = {};
+			var includes = {};
 			now.setDate(16);
 			var start = jb.addMonth(now,-1);
 			now.setDate(15);
 
+			var isExMode = function() {
+				var val = $('#modebar > input[name=mode]:checked').val();
+				return 2 == val;
+			};
+
+			var renderList = function(id,obj) {
+				var html = ['<ol>'];
+				for(var i in obj ) {
+					if(!obj[i]) {
+						continue;
+					}
+					html[html.length] = '<li>' + i + '</li>'; 
+				}
+				html[html.length] = '</ol>';
+				$('#'+id).html(html.join(''));
+			};
 
 			// Datepicker
 			$('#bar').datepicker({
@@ -41,26 +85,44 @@
 				maxDate:now,
 				minDate:start,
 				onSelect:function(date,ele){
-					excludes[date] = !excludes[date];
+					if(isExMode()) {
+						excludes[date] = !excludes[date];
+					} else {
+						includes[date] = !includes[date];
+					}
+					renderList('ex',excludes);
+					renderList('inc',includes);
 				}
 			});
 
-			$('#cal').click(function(){
-				var ex = [];
-				for(var i in excludes) {
-					if(excludes[i]){
-						ex[ex.length]= i;
+			var objToArr = function(obj) {
+				if(!obj) {
+					return;
+				}
+				var ret = [];
+				for(var i in obj) {
+					if(obj[i]){
+						ret[ret.length]= i;
 					}
 				}
+				return ret;
+			}
+
+			$('#cal').click(function(){
+				var ex = objToArr(excludes);
+				var inc = objToArr(includes);
+
 				var end = new Date(now);
 				end.setDate(16);
-				var ret = jb.getText(start,end,ex);
+				var ret = jb.getText(start,end,ex,inc);
 				excludes={};
+				includes={};
 				if(!ret) {
 					$('#ret').html('没有结果');
 					return;
 				}
 				$('#ret').val(ret.r).attr('size',ret.r.length+10);
+				$('#tolDays').val(ret.d);
 				$('#retd').css('display','');
 			});
 			$('#cal').click();
